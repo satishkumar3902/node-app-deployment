@@ -1,0 +1,17 @@
+
+{
+  "name": "nodejs-deployment",
+  "version": "1.0.0",
+  "description": "Node.js CI/CD deployment application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node --test tests/test_app.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}
