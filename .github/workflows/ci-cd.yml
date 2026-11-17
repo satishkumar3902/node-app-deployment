@@ -1,8 +1,5 @@
 
-name: Node.js Continuous Integration
-
-# Trigger the workflow whenever code is pushed
-# or a Pull Request is created or updated.
+name: Node.js CI-CD Pipeline
 
 on:
   push:
@@ -13,33 +10,63 @@ permissions:
   contents: read
 
 jobs:
+
+  # JOB 1: TEST APPLICATION
   test:
     name: Test Node.js Application
-
-    # GitHub provides an Ubuntu Linux machine
     runs-on: ubuntu-latest
 
     steps:
-
-      # Step 1: Checkout source code
       - name: Checkout source code
         uses: actions/checkout@v7
 
-      # Step 2: Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Step 4: Validate JavaScript syntax
       - name: Check application syntax
         run: node --check app.js
 
-      # Step 5: Execute unit tests
       - name: Run application tests
         run: npm test
+
+
+  # JOB 2: BUILD DOCKER IMAGE
+  build-image:
+    name: Build and Validate Docker Image
+
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+
+          push: false
+          load: true
+
+          tags: |
+            node-app-deployment:latest
+            node-app-deployment:${{ github.sha }}
+
+      - name: Verify Docker Image
+        run: |
+          docker image inspect node-app-deployment:latest
+          docker image inspect node-app-deployment:${{ github.sha }}
+          docker image ls node-app-deployment
+
